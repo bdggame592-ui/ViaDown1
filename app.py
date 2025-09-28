@@ -19,39 +19,30 @@ def download_video():
         return jsonify({'status': 'error', 'message': 'Missing URL or platform'}), 400
 
     try:
-        # yt-dlp options
+        # yt-dlp options for proper mp4 download
         ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',
-            'merge_output_format': 'mp4',
+            'format': 'best[ext=mp4]/best',  # single mp4 file if possible
+            'merge_output_format': 'mp4',    # ensures final output is mp4
             'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
             'noplaylist': True,
             'quiet': True,
             'no_warnings': True,
-            'postprocessors': [{'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}],
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
-            }
+            'postprocessors': [{
+                'key': 'FFmpegVideoConvertorPP',  # correct ffmpeg postprocessor
+                'preferedformat': 'mp4'
+            }],
         }
 
-        # Use cookies if available (for age-restricted/login videos)
+        # Use cookies.txt if exists (optional)
         if os.path.exists("cookies.txt"):
             ydl_opts['cookiefile'] = "cookies.txt"
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             initial_path = ydl.prepare_filename(info)
+            final_path = initial_path if initial_path.endswith(".mp4") else os.path.splitext(initial_path)[0] + ".mp4"
 
-            # Fix mhtml saved files: rename to .mp4
-            final_path = initial_path
-            if final_path.lower().endswith(".mhtml"):
-                base_name = os.path.splitext(final_path)[0]
-                new_path = base_name + ".mp4"
-                os.rename(final_path, new_path)
-                final_path = new_path
-            elif not final_path.lower().endswith(".mp4"):
-                final_path = os.path.splitext(final_path)[0] + ".mp4"
-
-            # Fallback if file not found
+            # fallback if file not found
             if not os.path.exists(final_path):
                 potential_files = [
                     f for f in os.listdir(DOWNLOAD_FOLDER)
