@@ -1,16 +1,8 @@
 from flask import Flask, render_template, request, send_from_directory, jsonify
 import yt_dlp
 import os
-import subprocess, sys
 
-# Auto-update yt-dlp
-try:
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"],
-        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-except Exception as e:
-    print("⚠️ Warning: yt-dlp auto-update failed:", e)
+
 
 app = Flask(__name__)
 DOWNLOAD_FOLDER = 'downloads'
