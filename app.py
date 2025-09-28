@@ -21,35 +21,31 @@ def download_video():
     try:
         # yt-dlp options
         ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',
-            'merge_output_format': 'mp4',           # ensures merged MP4
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',  # Force MP4
+            'merge_output_format': 'mp4',
             'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
             'noplaylist': True,
             'quiet': True,
             'no_warnings': True,
-            'geo_bypass': True,
-            'nocheckcertificate': True,
-            'postprocessors': [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4'            # correct spelling
-            }],
+            'postprocessors': [{'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}],
         }
 
-        # Use cookies if available for age-restricted/private videos
+        # Use cookies if available
         if os.path.exists("cookies.txt"):
-            ydl_opts['cookiefile'] = 'cookies.txt'
+            ydl_opts['cookiefile'] = "cookies.txt"
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             initial_path = ydl.prepare_filename(info)
-            final_path = initial_path if initial_path.endswith(".mp4") else os.path.splitext(initial_path)[0] + ".mp4"
+            # Force final path extension to mp4
+            final_path = os.path.splitext(initial_path)[0] + ".mp4"
 
-            # fallback: search in downloads folder
+            # Fallback check if file not found
             if not os.path.exists(final_path):
                 potential_files = [
                     f for f in os.listdir(DOWNLOAD_FOLDER)
                     if os.path.isfile(os.path.join(DOWNLOAD_FOLDER, f)) and
-                       f.startswith(os.path.basename(os.path.splitext(initial_path)[0]))
+                    f.startswith(os.path.basename(os.path.splitext(initial_path)[0]))
                 ]
                 if potential_files:
                     final_path = os.path.join(DOWNLOAD_FOLDER, potential_files[0])
