@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViaDown - Video Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-download"></i>
+                <h1>ViaDown</h1>
+            </div>
+            <button class="menu-button" id="menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </header>
+        
+        <p class="tagline">Download videos easily!</p>
+        
+        <div class="input-group">
+            <input type="text" id="url-input" placeholder="Insert video link here...">
+        </div>
+        
+        <div class="platforms">
+            <div class="platform" data-platform="youtube">
+                <i class="fab fa-youtube"></i>
+                <span class="platform-name">YouTube</span>
+            </div>
+            <div class="platform" data-platform="facebook">
+                <i class="fab fa-facebook"></i>
+                <span class="platform-name">Facebook</span>
+            </div>
+            <div class="platform" data-platform="instagram">
+                <i class="fab fa-instagram"></i>
+                <span class="platform-name">Instagram</span>
+            </div>
+            <div class="platform" data-platform="tiktok">
+                <i class="fab fa-tiktok"></i>
+                <span class="platform-name">TikTok</span>
+            </div>
+        </div>
+        
+        <button class="btn" id="download-btn">
+            <i class="fas fa-download"></i>
+            Download
+        </button>
+        
+        <div class="message" id="message"></div>
+    </div>
+    
+    <div class="menu-content" id="menu-content">
+        <div class="menu-header">
+            <h2>ViaDown Menu</h2>
+            <button class="close-menu" id="close-menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="menu-items">
+            <div class="menu-item" data-section="help">
+                <i class="fas fa-question-circle"></i>
+                <span>Help</span>
+            </div>
+            <div class="menu-item" data-section="how">
+                <i class="fas fa-info-circle"></i>
+                <span>How to Use</span>
+            </div>
+            <div class="menu-item" data-section="about">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>About</span>
+            </div>
+        </div>
+        <div class="menu-section-content" id="menu-section-content">
+            <!-- Content will be dynamically inserted here -->
+        </div>
+    </div>
+    
+    <footer class="footer">
+        © 2025 ViaDown
+    </footer>
 
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
