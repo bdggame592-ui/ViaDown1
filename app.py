@@ -2,8 +2,6 @@ from flask import Flask, render_template, request, send_from_directory, jsonify
 import yt_dlp
 import os
 
-
-
 app = Flask(__name__)
 DOWNLOAD_FOLDER = 'downloads'
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
@@ -32,17 +30,22 @@ def download_video():
             'postprocessors': [{'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}],
         }
 
-        # Download
+        # Use cookies if available (for age-restricted or login-required videos)
+        if os.path.exists("cookies.txt"):
+            ydl_opts['cookiefile'] = "cookies.txt"
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             initial_path = ydl.prepare_filename(info)
             final_path = initial_path if initial_path.endswith(".mp4") else os.path.splitext(initial_path)[0] + ".mp4"
 
+            # Fallback if file not found
             if not os.path.exists(final_path):
-                # fallback check
-                potential_files = [f for f in os.listdir(DOWNLOAD_FOLDER)
-                                   if os.path.isfile(os.path.join(DOWNLOAD_FOLDER, f)) and
-                                   f.startswith(os.path.basename(os.path.splitext(initial_path)[0]))]
+                potential_files = [
+                    f for f in os.listdir(DOWNLOAD_FOLDER)
+                    if os.path.isfile(os.path.join(DOWNLOAD_FOLDER, f)) and
+                    f.startswith(os.path.basename(os.path.splitext(initial_path)[0]))
+                ]
                 if potential_files:
                     final_path = os.path.join(DOWNLOAD_FOLDER, potential_files[0])
                 else:
@@ -50,7 +53,11 @@ def download_video():
 
             video_title = info.get('title', os.path.basename(final_path))
 
-            return jsonify({'status': 'success', 'filename': os.path.basename(final_path), 'title': video_title})
+            return jsonify({
+                'status': 'success',
+                'filename': os.path.basename(final_path),
+                'title': video_title
+            })
 
     except Exception as e:
         return jsonify({'status': 'error', 'message': f"Download failed: {str(e)}"}), 500
