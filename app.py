@@ -12,8 +12,6 @@ try:
 except Exception as e:
     print("⚠️ Warning: yt-dlp auto-update failed:", e)
 
-# Clear yt-dlp cache to avoid old/corrupt cache errors
-yt_dlp.utils.clean_cache()
 
 app = Flask(__name__)
 DOWNLOAD_FOLDER = 'downloads'
