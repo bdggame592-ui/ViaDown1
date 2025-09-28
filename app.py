@@ -29,7 +29,7 @@ def download_video():
             'no_warnings': True,
             'postprocessors': [{
                 'key': 'FFmpegVideoConvertor',
-                'preferredformat': 'mp4'
+                'preferedformat': 'mp4'  # correct spelling for yt-dlp 2023.10.13
             }]
         }
 
@@ -44,7 +44,7 @@ def download_video():
                 base_name = os.path.splitext(initial_path)[0]
                 final_path = base_name + ".mp4"
                 if not os.path.exists(final_path):
-                    # Fallback search in DOWNLOAD_FOLDER
+                    # fallback search
                     potential_files = [f for f in os.listdir(DOWNLOAD_FOLDER)
                                        if f.startswith(os.path.basename(base_name))]
                     if potential_files:
