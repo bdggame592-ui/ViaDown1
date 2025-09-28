@@ -22,29 +22,34 @@ def download_video():
         # yt-dlp options
         ydl_opts = {
             'format': 'bestvideo+bestaudio/best',
-            'merge_output_format': 'mp4',
+            'merge_output_format': 'mp4',           # ensures merged MP4
             'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
             'noplaylist': True,
             'quiet': True,
             'no_warnings': True,
-            'postprocessors': [{'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}],
+            'geo_bypass': True,
+            'nocheckcertificate': True,
+            'postprocessors': [{
+                'key': 'FFmpegVideoConvertor',
+                'preferedformat': 'mp4'            # correct spelling
+            }],
         }
 
-        # Use cookies if available (for age-restricted or login-required videos)
+        # Use cookies if available for age-restricted/private videos
         if os.path.exists("cookies.txt"):
-            ydl_opts['cookiefile'] = "cookies.txt"
+            ydl_opts['cookiefile'] = 'cookies.txt'
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             initial_path = ydl.prepare_filename(info)
             final_path = initial_path if initial_path.endswith(".mp4") else os.path.splitext(initial_path)[0] + ".mp4"
 
-            # Fallback if file not found
+            # fallback: search in downloads folder
             if not os.path.exists(final_path):
                 potential_files = [
                     f for f in os.listdir(DOWNLOAD_FOLDER)
                     if os.path.isfile(os.path.join(DOWNLOAD_FOLDER, f)) and
-                    f.startswith(os.path.basename(os.path.splitext(initial_path)[0]))
+                       f.startswith(os.path.basename(os.path.splitext(initial_path)[0]))
                 ]
                 if potential_files:
                     final_path = os.path.join(DOWNLOAD_FOLDER, potential_files[0])
