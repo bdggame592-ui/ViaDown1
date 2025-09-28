@@ -3,7 +3,7 @@ import yt_dlp
 import os
 import subprocess, sys
 
-# Auto-update yt-dlp safely
+# Auto-update yt-dlp
 try:
     subprocess.run(
         [sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"],
@@ -37,49 +37,29 @@ def download_video():
             'noplaylist': True,
             'quiet': True,
             'no_warnings': True,
-            'postprocessors': [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4'  # correct keyword
-            }],
+            'postprocessors': [{'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}],
         }
 
-        # Optional cookies.txt for login-required videos
-        if os.path.exists("cookies.txt"):
-            ydl_opts['cookiefile'] = "cookies.txt"
-
+        # Download
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             initial_path = ydl.prepare_filename(info)
+            final_path = initial_path if initial_path.endswith(".mp4") else os.path.splitext(initial_path)[0] + ".mp4"
 
-            # Determine final file path
-            if initial_path.endswith(".mp4") and os.path.exists(initial_path):
-                final_path = initial_path
-            else:
-                base_name = os.path.splitext(initial_path)[0]
-                final_path = base_name + ".mp4"
-                if not os.path.exists(final_path):
-                    # fallback: check downloaded folder
-                    potential_files = [
-                        f for f in os.listdir(DOWNLOAD_FOLDER)
-                        if os.path.isfile(os.path.join(DOWNLOAD_FOLDER, f)) and
-                        f.startswith(os.path.basename(base_name))
-                    ]
-                    if potential_files:
-                        final_path = os.path.join(DOWNLOAD_FOLDER, potential_files[0])
-                    else:
-                        raise Exception("Could not locate the downloaded file.")
+            if not os.path.exists(final_path):
+                # fallback check
+                potential_files = [f for f in os.listdir(DOWNLOAD_FOLDER)
+                                   if os.path.isfile(os.path.join(DOWNLOAD_FOLDER, f)) and
+                                   f.startswith(os.path.basename(os.path.splitext(initial_path)[0]))]
+                if potential_files:
+                    final_path = os.path.join(DOWNLOAD_FOLDER, potential_files[0])
+                else:
+                    raise Exception("Could not locate the downloaded file.")
 
             video_title = info.get('title', os.path.basename(final_path))
 
-            return jsonify({
-                'status': 'success',
-                'filename': os.path.basename(final_path),
-                'title': video_title
-            })
+            return jsonify({'status': 'success', 'filename': os.path.basename(final_path), 'title': video_title})
 
-    except yt_dlp.utils.DownloadError as de:
-        # Handle YouTube bot protection / login-required videos
-        return jsonify({'status': 'error', 'message': "Download failed: This video may require login or is age-restricted. Use cookies.txt for access."}), 500
     except Exception as e:
         return jsonify({'status': 'error', 'message': f"Download failed: {str(e)}"}), 500
 
