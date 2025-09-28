@@ -21,7 +21,7 @@ def download_video():
     try:
         # yt-dlp options
         ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',  # Force MP4
+            'format': 'bestvideo+bestaudio/best',
             'merge_output_format': 'mp4',
             'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
             'noplaylist': True,
@@ -30,17 +30,16 @@ def download_video():
             'postprocessors': [{'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}],
         }
 
-        # Use cookies if available
+        # Use cookies if available (for age-restricted or login-required videos)
         if os.path.exists("cookies.txt"):
             ydl_opts['cookiefile'] = "cookies.txt"
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             initial_path = ydl.prepare_filename(info)
-            # Force final path extension to mp4
-            final_path = os.path.splitext(initial_path)[0] + ".mp4"
+            final_path = initial_path if initial_path.endswith(".mp4") else os.path.splitext(initial_path)[0] + ".mp4"
 
-            # Fallback check if file not found
+            # Fallback if file not found
             if not os.path.exists(final_path):
                 potential_files = [
                     f for f in os.listdir(DOWNLOAD_FOLDER)
