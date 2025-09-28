@@ -21,26 +21,37 @@ def download_video():
     try:
         # yt-dlp options
         ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',  # Force MP4
+            'format': 'bestvideo+bestaudio/best',
             'merge_output_format': 'mp4',
             'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
             'noplaylist': True,
             'quiet': True,
             'no_warnings': True,
             'postprocessors': [{'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}],
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
+            }
         }
 
-        # Use cookies if available
+        # Use cookies if available (for age-restricted/login videos)
         if os.path.exists("cookies.txt"):
             ydl_opts['cookiefile'] = "cookies.txt"
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             initial_path = ydl.prepare_filename(info)
-            # Force final path extension to mp4
-            final_path = os.path.splitext(initial_path)[0] + ".mp4"
 
-            # Fallback check if file not found
+            # Fix mhtml saved files: rename to .mp4
+            final_path = initial_path
+            if final_path.lower().endswith(".mhtml"):
+                base_name = os.path.splitext(final_path)[0]
+                new_path = base_name + ".mp4"
+                os.rename(final_path, new_path)
+                final_path = new_path
+            elif not final_path.lower().endswith(".mp4"):
+                final_path = os.path.splitext(final_path)[0] + ".mp4"
+
+            # Fallback if file not found
             if not os.path.exists(final_path):
                 potential_files = [
                     f for f in os.listdir(DOWNLOAD_FOLDER)
